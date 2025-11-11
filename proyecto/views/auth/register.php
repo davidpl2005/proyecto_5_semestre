@@ -52,6 +52,7 @@ session_start();
                         <input id="password" 
                                type="password" 
                                name="password" 
+                                 placeholder="Ingrese una contraseña"
                                required
                                autocomplete="new-password"
                                minlength="3">
@@ -60,9 +61,10 @@ session_start();
                                 onclick="togglePassword('password')"
                                 aria-label="Mostrar contraseña">
                             👁️
-            
                         </button>
-                   <br><br>
+                    </div>
+                </div>
+                   
                 <div class="form-group">
                     <label for="password2">Confirmar contraseña</label>
                     <div class="password-wrapper">
@@ -108,7 +110,7 @@ session_start();
             }
         }
 
-        // Validación en tiempo real de contraseñas
+     
         const password = document.getElementById('password');
         const password2 = document.getElementById('password2');
         const passwordError = document.getElementById('passwordError');
@@ -135,7 +137,7 @@ session_start();
         password.addEventListener('input', validatePasswords);
         password2.addEventListener('input', validatePasswords);
 
-        // Validación antes de enviar
+        
         form.addEventListener('submit', function(e) {
             if (password.value !== password2.value) {
                 e.preventDefault();
@@ -144,13 +146,13 @@ session_start();
                 return false;
             }
 
-            // Deshabilitar botón y mostrar estado de carga
+            
             const submitBtn = this.querySelector('.btn-submit');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Registrando...';
         });
 
-        // Validación de longitud mínima
+        
         password.addEventListener('input', function() {
             if (this.value.length > 0 && this.value.length < 3) {
                 this.setCustomValidity('La contraseña debe tener al menos 3 caracteres');

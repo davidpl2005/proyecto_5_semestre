@@ -30,8 +30,8 @@ $productos = $model->getAll();
         <?php endif; ?>
 
         <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-            <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" style="display: inline-block; padding: 10px 20px; background-color: #34495e; color: white; text-decoration: none; border-radius: 5px;">← Volver al panel de administracion</a>
-            <a href="/Proyecto_aula/proyecto/views/admin/productos/create.php" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">+ Crear Producto</a>
+            <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" style="display: inline-block; padding: 10px 20px; background-color: #34495e; color: white; text-decoration: none; border-radius: 5px;">← VOLVER AL PANEL DE ADMINISTRACION</a>
+            <a href="/Proyecto_aula/proyecto/views/admin/productos/create.php" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">+ AÑADIR NUEVO PRODUCTO</a>
         </div>
 
         <table class="products-table">
