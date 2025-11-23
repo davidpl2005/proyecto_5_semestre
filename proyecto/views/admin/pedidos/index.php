@@ -10,6 +10,7 @@ $estadisticas = $pedidoModel->getEstadisticas();
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@ $estadisticas = $pedidoModel->getEstadisticas();
     <link rel="stylesheet" href="/Proyecto_aula/proyecto/public/assets/css/admin.css">
     <link rel="stylesheet" href="/Proyecto_aula/proyecto/public/assets/css/admin-pedidos.css">
 </head>
+
 <body>
     <div class="admin-container">
         <header class="admin-header">
@@ -75,7 +77,7 @@ $estadisticas = $pedidoModel->getEstadisticas();
                     <th>Cliente</th>
                     <th>Fecha</th>
                     <th>Total</th>
-                    <th>Estado</th>
+                    <th>Estado Actual</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -105,27 +107,28 @@ $estadisticas = $pedidoModel->getEstadisticas();
                                 <span class="precio-tabla">$<?= number_format($pedido['total'], 2) ?></span>
                             </td>
                             <td>
-                                <form method="post" 
-                                      action="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=updateStatus" 
-                                      style="margin: 0;">
-                                    <input type="hidden" name="id" value="<?= $pedido['id_pedido'] ?>">
-                                    <select name="estado" class="estado-select" onchange="this.form.submit()">
-                                        <option value="pendiente" <?= $pedido['estado'] == 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
-                                        <option value="preparando" <?= $pedido['estado'] == 'preparando' ? 'selected' : '' ?>>Preparando</option>
-                                        <option value="listo" <?= $pedido['estado'] == 'listo' ? 'selected' : '' ?>>Listo</option>
-                                        <option value="entregado" <?= $pedido['estado'] == 'entregado' ? 'selected' : '' ?>>Entregado</option>
-                                        <option value="cancelado" <?= $pedido['estado'] == 'cancelado' ? 'selected' : '' ?>>Cancelado</option>
-                                    </select>
-                                </form>
+                                <?php
+                                $estados_badge = [
+                                    'pendiente' => ['color' => '#f39c12', 'texto' => 'Pendiente'],
+                                    'preparando' => ['color' => '#3498db', 'texto' => 'Preparando'],
+                                    'listo' => ['color' => '#9b59b6', 'texto' => 'Listo'],
+                                    'entregado' => ['color' => '#27ae60', 'texto' => 'Entregado'],
+                                    'cancelado' => ['color' => '#e74c3c', 'texto' => 'Cancelado']
+                                ];
+                                $badge = $estados_badge[$pedido['estado']];
+                                ?>
+                                <span style="background-color: <?= $badge['color'] ?>20; color: <?= $badge['color'] ?>; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block;">
+                                    <?= $badge['texto'] ?>
+                                </span>
                             </td>
                             <td>
-                                <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=view&id=<?= $pedido['id_pedido'] ?>" 
-                                   class="btn-ver-admin">
+                                <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=view&id=<?= $pedido['id_pedido'] ?>"
+                                    class="btn-ver-admin">
                                     Ver
                                 </a>
-                                <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=delete&id=<?= $pedido['id_pedido'] ?>" 
-                                   class="btn-eliminar-admin"
-                                   onclick="return confirm('¿Estás seguro de eliminar este pedido?')">
+                                <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=delete&id=<?= $pedido['id_pedido'] ?>"
+                                    class="btn-eliminar-admin"
+                                    onclick="return confirm('¿Estás seguro de eliminar este pedido?')">
                                     Eliminar
                                 </a>
                             </td>
@@ -148,4 +151,5 @@ $estadisticas = $pedidoModel->getEstadisticas();
         }, 3000);
     </script>
 </body>
+
 </html>

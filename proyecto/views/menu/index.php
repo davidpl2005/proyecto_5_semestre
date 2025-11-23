@@ -17,6 +17,7 @@ if (isset($_SESSION['carrito'])) {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Menú - Restaurante</title>
@@ -31,17 +32,17 @@ if (isset($_SESSION['carrito'])) {
 
         .nav-link {
             padding: 8px 16px;
-            background-color: rgba(255,255,255,0.2);
+            background-color: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
             border-radius: 6px;
             transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             font-weight: 600;
         }
 
         .nav-link:hover {
-            background-color: rgba(255,255,255,0.3);
+            background-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
         }
 
@@ -77,6 +78,7 @@ if (isset($_SESSION['carrito'])) {
                 transform: translateY(-20px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -113,6 +115,7 @@ if (isset($_SESSION['carrito'])) {
         }
     </style>
 </head>
+
 <body>
     <div class="menu-container">
         <header class="menu-header">
@@ -122,8 +125,16 @@ if (isset($_SESSION['carrito'])) {
                     <a href="/Proyecto_aula/proyecto/views/pedidos/index.php" class="nav-link">
                         📦 Mis Pedidos
                     </a>
+                    <a href="/Proyecto_aula/proyecto/views/pagos/index.php" class="nav-link">
+                        💳 Mis Pagos
+                    </a>
+
+                    <a href="/Proyecto_aula/proyecto/views/facturas/index.php" class="nav-link">
+                        🧾 Mis Facturas
+                    </a>
+
                     <a href="/Proyecto_aula/proyecto/views/carrito/index.php" class="nav-link">
-                        🛒 Carrito 
+                        🛒 Carrito
                         <?php if ($totalItems > 0): ?>
                             <span class="badge-contador"><?= $totalItems ?></span>
                         <?php endif; ?>
@@ -161,9 +172,9 @@ if (isset($_SESSION['carrito'])) {
                 <?php foreach ($productos as $p): ?>
                     <div class="producto-card <?= !$p['disponible'] ? 'no-disponible' : '' ?>">
                         <?php if (!empty($p['imagen'])): ?>
-                            <img src="/Proyecto_aula/proyecto/public/assets/img/products/<?= htmlspecialchars($p['imagen']) ?>" 
-                                 alt="<?= htmlspecialchars($p['nombre']) ?>" 
-                                 class="producto-imagen">
+                            <img src="/Proyecto_aula/proyecto/public/assets/img/products/<?= htmlspecialchars($p['imagen']) ?>"
+                                alt="<?= htmlspecialchars($p['nombre']) ?>"
+                                class="producto-imagen">
                         <?php else: ?>
                             <div class="sin-imagen">📦</div>
                         <?php endif; ?>
@@ -171,20 +182,20 @@ if (isset($_SESSION['carrito'])) {
                             <h3><?= htmlspecialchars($p['nombre']) ?></h3>
                             <p class="producto-descripcion"><?= nl2br(htmlspecialchars($p['descripcion'])) ?></p>
                             <p class="producto-precio">$<?= number_format($p['precio'], 2) ?></p>
-                            
+
                             <?php if ($p['disponible']): ?>
-                                <form method="post" action="/Proyecto_aula/proyecto/controllers/CarritoController.php?action=add" 
-                                      class="form-agregar">
+                                <form method="post" action="/Proyecto_aula/proyecto/controllers/CarritoController.php?action=add"
+                                    class="form-agregar">
                                     <input type="hidden" name="id_producto" value="<?= $p['id_producto'] ?>">
                                     <div class="cantidad-wrapper">
                                         <label for="cantidad-<?= $p['id_producto'] ?>">Cantidad:</label>
-                                        <input type="number" 
-                                               id="cantidad-<?= $p['id_producto'] ?>" 
-                                               name="cantidad" 
-                                               value="1" 
-                                               min="1" 
-                                               max="99"
-                                               class="input-cantidad">
+                                        <input type="number"
+                                            id="cantidad-<?= $p['id_producto'] ?>"
+                                            name="cantidad"
+                                            value="1"
+                                            min="1"
+                                            max="99"
+                                            class="input-cantidad">
                                     </div>
                                     <button type="submit" class="btn-agregar">🛒 Agregar al Carrito</button>
                                 </form>
@@ -221,4 +232,5 @@ if (isset($_SESSION['carrito'])) {
         }, 3000);
     </script>
 </body>
+
 </html>

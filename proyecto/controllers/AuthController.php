@@ -2,16 +2,19 @@
 session_start();
 require_once __DIR__ . '/../models/Usuario.php';
 
-class AuthController {
+class AuthController
+{
     private $usuarioModel;
     private $baseUrl;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->usuarioModel = new Usuario();
         $this->baseUrl = '/Proyecto_aula/proyecto';
     }
 
-    public function login() {
+    public function login()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
@@ -42,13 +45,16 @@ class AuthController {
 
         if ($usuario['rol'] === 'admin') {
             header("Location: {$this->baseUrl}/views/admin/dashboard.php");
+        } elseif ($usuario['rol'] === 'chef') {
+            header("Location: {$this->baseUrl}/views/chef/dashboard.php");
         } else {
             header("Location: {$this->baseUrl}/views/menu/index.php");
         }
         exit;
     }
 
-    public function register() {
+    public function register()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
@@ -88,7 +94,8 @@ class AuthController {
         exit;
     }
 
-    public function logout() {
+    public function logout()
+    {
         session_destroy();
         header("Location: {$this->baseUrl}/views/auth/login.php");
         exit;
@@ -99,7 +106,7 @@ class AuthController {
 $action = $_GET['action'] ?? '';
 $controller = new AuthController();
 
-switch($action) {
+switch ($action) {
     case 'login':
         $controller->login();
         break;
