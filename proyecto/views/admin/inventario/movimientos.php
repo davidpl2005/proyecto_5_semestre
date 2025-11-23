@@ -22,6 +22,7 @@ $estadisticas = $movimientoModel->getEstadisticas();
     <div class="admin-container">
         <header class="admin-header">
             <h1>📋 Historial de Movimientos</h1>
+            <br>
             <a href="/Proyecto_aula/proyecto/views/admin/inventario/index.php" class="btn-logout" style="background-color: #34495e;">← Volver al Inventario</a>
         </header>
 

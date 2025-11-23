@@ -22,6 +22,7 @@ $estadisticas = $inventarioModel->getEstadisticas();
     <div class="admin-container">
         <header class="admin-header">
             <h1>📦 Gestión de Inventario</h1>
+            <br>
             <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" class="btn-logout" style="background-color: #34495e;">← Volver al Panel</a>
         </header>
 

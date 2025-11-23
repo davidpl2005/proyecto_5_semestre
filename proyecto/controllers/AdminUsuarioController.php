@@ -29,11 +29,29 @@ switch($action) {
 
     case 'delete':
         $id = $_GET['id'] ?? 0;
+        
+        // Obtener información del usuario antes de intentar eliminarlo
+        $usuario = $usuarioModel->findById($id);
+        
+        if (!$usuario) {
+            $_SESSION['error'] = 'Usuario no encontrado';
+            header('Location: /Proyecto_aula/proyecto/views/admin/usuarios/index.php');
+            exit;
+        }
+        
+        // Verificar que no sea admin ni chef
+        if ($usuario['rol'] === 'admin' || $usuario['rol'] === 'chef') {
+            $_SESSION['error'] = 'No se puede eliminar usuarios con rol de Administrador o Chef';
+            header('Location: /Proyecto_aula/proyecto/views/admin/usuarios/index.php');
+            exit;
+        }
+        
         if ($usuarioModel->delete($id)) {
             $_SESSION['success'] = 'Usuario eliminado correctamente';
         } else {
             $_SESSION['error'] = 'No se pudo eliminar el usuario';
         }
+        
         header('Location: /Proyecto_aula/proyecto/views/admin/usuarios/index.php');
         break;
 

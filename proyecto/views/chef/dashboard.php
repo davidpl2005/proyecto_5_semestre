@@ -124,10 +124,14 @@ if ($filtro_estado !== 'todos') {
                 <?php else: ?>
                     <?php foreach ($pedidos as $pedido): ?>
                         <?php
-                        // Calcular tiempo transcurrido
+                        // CORREGIR: Calcular tiempo transcurrido con la zona horaria correcta
+                        // Establecer zona horaria de Colombia
+                        date_default_timezone_set('America/Bogota');
+                        
                         $fecha_pedido = strtotime($pedido['fecha_pedido']);
                         $ahora = time();
-                        $minutos = floor(($ahora - $fecha_pedido) / 60);
+                        $diferencia_segundos = $ahora - $fecha_pedido;
+                        $minutos = floor($diferencia_segundos / 60);
                         
                         // Determinar prioridad
                         if ($minutos > 30 && $pedido['estado'] === 'pendiente') {
@@ -161,7 +165,9 @@ if ($filtro_estado !== 'todos') {
                                         </span>
                                     <?php endif; ?>
                                     <div class="tiempo-pedido <?= $minutos > 30 ? 'tiempo-urgente' : '' ?>">
-                                        <?php if ($minutos < 60): ?>
+                                        <?php if ($minutos < 1): ?>
+                                            Hace menos de 1 min
+                                        <?php elseif ($minutos < 60): ?>
                                             Hace <?= $minutos ?> min
                                         <?php else: ?>
                                             Hace <?= floor($minutos / 60) ?>h <?= $minutos % 60 ?>m

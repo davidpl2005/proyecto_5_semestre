@@ -33,12 +33,12 @@ switch ($action) {
         $id_pedido = $pedidoModel->create($id_usuario, $total, 'pendiente');
 
         if ($id_pedido) {
-    // Crear los detalles del pedido
-    if ($detalleModel->createMultiple($id_pedido, $_SESSION['carrito'])) {
-        // Limpiar el carrito
-        $_SESSION['carrito'] = [];
-        // Redirigir al formulario de pago
-        header('Location: /Proyecto_aula/proyecto/controllers/PagoController.php?action=mostrar_forma_pago&id_pedido=' . $id_pedido);
+            // Crear los detalles del pedido
+            if ($detalleModel->createMultiple($id_pedido, $_SESSION['carrito'])) {
+                // Limpiar el carrito
+                $_SESSION['carrito'] = [];
+                // Redirigir al formulario de pago
+                header('Location: /Proyecto_aula/proyecto/controllers/PagoController.php?action=mostrar_forma_pago&id_pedido=' . $id_pedido);
             } else {
                 $_SESSION['error'] = 'Error al procesar los detalles del pedido';
                 header('Location: /Proyecto_aula/proyecto/views/carrito/index.php');
@@ -60,8 +60,10 @@ switch ($action) {
             exit;
         }
 
-        // Verificar que el pedido pertenece al usuario (o es admin)
-        if ($pedido['id_usuario'] != $_SESSION['user']['id'] && $_SESSION['user']['rol'] != 'admin') {
+        // Verificar que el pedido pertenece al usuario (o es admin o chef)
+        if ($pedido['id_usuario'] != $_SESSION['user']['id'] && 
+            $_SESSION['user']['rol'] != 'admin' && 
+            $_SESSION['user']['rol'] != 'chef') {
             $_SESSION['error'] = 'No tienes permiso para ver este pedido';
             header('Location: /Proyecto_aula/proyecto/views/pedidos/index.php');
             exit;
@@ -82,58 +84,69 @@ switch ($action) {
         exit;
 
     case 'updateEstado':
-    // Actualizar estado del pedido
-   checkAdminOrChef();
-    
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id = intval($_POST['id'] ?? 0);
-        $estado = $_POST['estado'] ?? '';
-
-        $estados_validos = ['pendiente', 'preparando', 'listo', 'entregado', 'cancelado'];
+        // Actualizar estado del pedido
+        checkAdminOrChef();
         
-        if (!in_array($estado, $estados_validos)) {
-            $_SESSION['error'] = 'Estado inválido';
-            header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
-            exit;
-        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = intval($_POST['id'] ?? 0);
+            $estado = $_POST['estado'] ?? '';
 
-        // Obtener estado anterior
-        $pedido = $pedidoModel->findById($id);
-        $estado_anterior = $pedido['estado'];
+            $estados_validos = ['pendiente', 'preparando', 'listo', 'entregado', 'cancelado'];
+            
+            if (!in_array($estado, $estados_validos)) {
+                $_SESSION['error'] = 'Estado inválido';
+                
+                // Redirigir según el rol
+                if ($_SESSION['user']['rol'] === 'chef') {
+                    header('Location: /Proyecto_aula/proyecto/views/chef/dashboard.php');
+                } else {
+                    header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+                }
+                exit;
+            }
 
-        if ($pedidoModel->updateEstado($id, $estado)) {
-            // Si el pedido pasa a "entregado", descontar del inventario
-            if ($estado == 'entregado' && $estado_anterior != 'entregado') {
-                require_once __DIR__ . '/../models/Inventario.php';
-                require_once __DIR__ . '/../models/MovimientoInventario.php';
-                
-                $inventarioModel = new Inventario();
-                $movimientoModel = new MovimientoInventario();
-                $detalles = $detalleModel->getByPedido($id);
-                
-                // Descontar del inventario
-                if ($inventarioModel->descontarPorPedido($detalles)) {
-                    // Registrar movimientos
-                    foreach ($detalles as $detalle) {
-                        $movimientoModel->registrar(
-                            $detalle['id_producto'],
-                            'salida',
-                            $detalle['cantidad'],
-                            'Venta - Pedido #' . $id,
-                            $_SESSION['user']['id']
-                        );
+            // Obtener estado anterior
+            $pedido = $pedidoModel->findById($id);
+            $estado_anterior = $pedido['estado'];
+
+            if ($pedidoModel->updateEstado($id, $estado)) {
+                // Si el pedido pasa a "entregado", descontar del inventario
+                if ($estado == 'entregado' && $estado_anterior != 'entregado') {
+                    require_once __DIR__ . '/../models/Inventario.php';
+                    require_once __DIR__ . '/../models/MovimientoInventario.php';
+                    
+                    $inventarioModel = new Inventario();
+                    $movimientoModel = new MovimientoInventario();
+                    $detalles = $detalleModel->getByPedido($id);
+                    
+                    // Descontar del inventario
+                    if ($inventarioModel->descontarPorPedido($detalles)) {
+                        // Registrar movimientos
+                        foreach ($detalles as $detalle) {
+                            $movimientoModel->registrar(
+                                $detalle['id_producto'],
+                                'salida',
+                                $detalle['cantidad'],
+                                'Venta - Pedido #' . $id,
+                                $_SESSION['user']['id']
+                            );
+                        }
                     }
                 }
+                
+                $_SESSION['success'] = 'Estado del pedido actualizado correctamente';
+            } else {
+                $_SESSION['error'] = 'Error al actualizar el estado';
             }
-            
-            $_SESSION['success'] = 'Estado del pedido actualizado correctamente';
-        } else {
-            $_SESSION['error'] = 'Error al actualizar el estado';
         }
-    }
-    
-    header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
-    exit;
+        
+        // Redirigir según el rol
+        if ($_SESSION['user']['rol'] === 'chef') {
+            header('Location: /Proyecto_aula/proyecto/views/chef/dashboard.php');
+        } else {
+            header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+        }
+        exit;
 
     case 'cancel':
         // Cancelar un pedido (solo si está pendiente)
@@ -188,6 +201,8 @@ switch ($action) {
         // Redirigir según el rol
         if ($_SESSION['user']['rol'] === 'admin') {
             header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+        } elseif ($_SESSION['user']['rol'] === 'chef') {
+            header('Location: /Proyecto_aula/proyecto/views/chef/dashboard.php');
         } else {
             header('Location: /Proyecto_aula/proyecto/views/pedidos/index.php');
         }
