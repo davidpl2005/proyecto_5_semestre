@@ -71,7 +71,7 @@ $iva = $pedido['total'] - $subtotal;
                         <div class="metodo-icon">💵</div>
                         <div class="metodo-info">
                             <div class="metodo-nombre">Efectivo</div>
-                            <div class="metodo-descripcion">Paga en efectivo al recibir tu pedido</div>
+                            <div class="metodo-descripcion">Paga en efectivo para poder recibir tu pedido</div>
                         </div>
                     </label>
 
@@ -81,7 +81,7 @@ $iva = $pedido['total'] - $subtotal;
                         <div class="metodo-icon">💳</div>
                         <div class="metodo-info">
                             <div class="metodo-nombre">Tarjeta de Crédito/Débito</div>
-                            <div class="metodo-descripcion">Pago con tarjeta (simulado)</div>
+                            <div class="metodo-descripcion">Pago con tarjeta </div>
                         </div>
                     </label>
 

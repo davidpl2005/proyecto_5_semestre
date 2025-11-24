@@ -12,27 +12,35 @@ $usuarios = $model->getAll();
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Usuarios - Admin</title>
+    <link rel="stylesheet" href="/Proyecto_aula/proyecto/public/assets/css/admin.css">
+    <link rel="stylesheet" href="/Proyecto_aula/proyecto/public/assets/css/admin-pedidos.css">
     <link rel="stylesheet" href="/Proyecto_aula/proyecto/public/assets/css/usuarios.css">
 </head>
 <body>
     <div class="admin-container">
-        <h1>Gestión de Usuarios</h1>
+        <!-- Header con estilo consistente -->
+        <header class="admin-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h1 style="margin: 0; color: white; font-size: 28px;">👥 Gestión de Usuarios</h1>
+                <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" class="btn-logout" style="background-color: #34495e;">← Volver al Panel</a>
+            </div>
+        </header>
         
         <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
+            <div class="alert alert-success" style="padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #d4edda; color: #155724;">
+                ✓ <?= htmlspecialchars($_SESSION['success']) ?>
+            </div>
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-error"><?= htmlspecialchars($_SESSION['error']) ?></div>
+            <div class="alert alert-error" style="padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #f8d7da; color: #721c24;">
+                ⚠ <?= htmlspecialchars($_SESSION['error']) ?>
+            </div>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <div class="actions">
-            <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" class="btn">← Volver</a>
-        </div>
-
-        <table class="table">
+        <table class="table pedidos-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -45,36 +53,55 @@ $usuarios = $model->getAll();
             <tbody>
                 <?php foreach ($usuarios as $usuario): ?>
                 <tr>
-                    <td><?= htmlspecialchars($usuario['id_usuario']) ?></td>
-                    <td><?= htmlspecialchars($usuario['nombre']) ?></td>
-                    <td><?= htmlspecialchars($usuario['correo']) ?></td>
+                    <td><span class="pedido-id"><?= htmlspecialchars($usuario['id_usuario']) ?></span></td>
                     <td>
-                        <span style="
-                            padding: 4px 10px; 
-                            border-radius: 12px; 
-                            font-size: 12px; 
-                            font-weight: 600;
-                            
-                        ">
-                            <?php if ($usuario['rol'] === 'admin'): ?>
-                                👑 Administrador
-                            <?php elseif ($usuario['rol'] === 'chef'): ?>
-                                👨‍🍳 Chef
-                            <?php else: ?>
-                                👤 Cliente
-                            <?php endif; ?>
+                        <div class="cliente-info">
+                            <span class="cliente-nombre"><?= htmlspecialchars($usuario['nombre']) ?></span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="cliente-email"><?= htmlspecialchars($usuario['correo']) ?></span>
+                    </td>
+                    <td>
+                        <?php
+                        // Definir estilos y texto según el rol
+                        $rol_info = [
+                            'admin' => [
+                                'bg' => 'rgba(102, 126, 234, 0.15)',
+                                'color' => '#0624adff',
+                                'icono' => '👑',
+                                'texto' => 'Administrador'
+                            ],
+                            'chef' => [
+                                'bg' => 'rgba(230, 126, 34, 0.15)',
+                                'color' => '#e67e22',
+                                'icono' => '👨‍🍳',
+                                'texto' => 'Chef'
+                            ],
+                            'cliente' => [
+                                'bg' => 'rgba(53, 176, 176, 0.15)',
+                                'color' => '#1289a0ff',
+                                'icono' => '👤',
+                                'texto' => 'Cliente'
+                            ]
+                        ];
+                        $rol = $usuario['rol'] === 'admin' ? 'admin' : ($usuario['rol'] === 'chef' ? 'chef' : 'cliente');
+                        $info = $rol_info[$rol];
+                        ?>
+                        <span style="padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block; background-color: <?= $info['bg'] ?>; color: <?= $info['color'] ?>;">
+                            <?= $info['icono'] ?> <?= $info['texto'] ?>
                         </span>
                     </td>
                     <td>
-                        <a href="edit.php?id=<?= $usuario['id_usuario'] ?>" class="btn-edit">Editar</a>
+                        <a href="edit.php?id=<?= $usuario['id_usuario'] ?>" class="btn-ver-admin">Editar</a>
                         <?php if ($usuario['rol'] !== 'admin' && $usuario['rol'] !== 'chef'): ?>
                             <a href="/Proyecto_aula/proyecto/controllers/AdminUsuarioController.php?action=delete&id=<?= $usuario['id_usuario'] ?>" 
-                               class="btn-delete" 
+                               class="btn-eliminar-admin" 
                                onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
                                 Eliminar
                             </a>
                         <?php else: ?>
-                            <span style="color: #7f8c8d; font-size: 12px; font-style: italic;">
+                            <span style="color: #7f8c8d; font-size: 12px; font-style: italic; padding: 6px 12px;">
                                 🔒 Protegido
                             </span>
                         <?php endif; ?>
@@ -92,5 +119,17 @@ $usuarios = $model->getAll();
             </p>
         </div>
     </div>
+
+    <script>
+        // Auto-ocultar alertas después de 3 segundos
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.3s';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 3000);
+    </script>
 </body>
 </html>

@@ -89,11 +89,11 @@ switch ($action) {
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = intval($_POST['id'] ?? 0);
-            $estado = $_POST['estado'] ?? '';
+            $nuevo_estado = $_POST['estado'] ?? '';
 
             $estados_validos = ['pendiente', 'preparando', 'listo', 'entregado', 'cancelado'];
             
-            if (!in_array($estado, $estados_validos)) {
+            if (!in_array($nuevo_estado, $estados_validos)) {
                 $_SESSION['error'] = 'Estado inválido';
                 
                 // Redirigir según el rol
@@ -105,13 +105,35 @@ switch ($action) {
                 exit;
             }
 
-            // Obtener estado anterior
+            // Obtener pedido actual
             $pedido = $pedidoModel->findById($id);
+            
+            if (!$pedido) {
+                $_SESSION['error'] = 'Pedido no encontrado';
+                if ($_SESSION['user']['rol'] === 'chef') {
+                    header('Location: /Proyecto_aula/proyecto/views/chef/dashboard.php');
+                } else {
+                    header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+                }
+                exit;
+            }
+
             $estado_anterior = $pedido['estado'];
 
-            if ($pedidoModel->updateEstado($id, $estado)) {
+            // VALIDACIÓN: No permitir cambios si ya está entregado
+            if ($estado_anterior === 'entregado') {
+                $_SESSION['error'] = 'No se puede modificar un pedido que ya fue entregado';
+                if ($_SESSION['user']['rol'] === 'chef') {
+                    header('Location: /Proyecto_aula/proyecto/views/chef/dashboard.php');
+                } else {
+                    header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+                }
+                exit;
+            }
+
+            if ($pedidoModel->updateEstado($id, $nuevo_estado)) {
                 // Si el pedido pasa a "entregado", descontar del inventario
-                if ($estado == 'entregado' && $estado_anterior != 'entregado') {
+                if ($nuevo_estado == 'entregado' && $estado_anterior != 'entregado') {
                     require_once __DIR__ . '/../models/Inventario.php';
                     require_once __DIR__ . '/../models/MovimientoInventario.php';
                     
@@ -149,7 +171,7 @@ switch ($action) {
         exit;
 
     case 'cancel':
-        // Cancelar un pedido (solo si está pendiente)
+        // Cancelar un pedido (eliminar completamente)
         $id = intval($_GET['id'] ?? 0);
         $pedido = $pedidoModel->findById($id);
 
@@ -173,10 +195,24 @@ switch ($action) {
             exit;
         }
 
-        if ($pedidoModel->updateEstado($id, 'cancelado')) {
-            $_SESSION['success'] = 'Pedido cancelado exitosamente';
-        } else {
-            $_SESSION['error'] = 'Error al cancelar el pedido';
+        // ELIMINACIÓN COMPLETA del pedido (no solo cambio de estado)
+        try {
+            // Primero eliminar pagos asociados si existen
+            require_once __DIR__ . '/../models/Pago.php';
+            $pagoModel = new Pago();
+            $pago = $pagoModel->findByPedido($id);
+            if ($pago) {
+                $pagoModel->delete($pago['id_pago']);
+            }
+
+            // Luego eliminar el pedido (esto también elimina los detalles por CASCADE)
+            if ($pedidoModel->delete($id)) {
+                $_SESSION['success'] = 'Pedido cancelado y eliminado exitosamente';
+            } else {
+                $_SESSION['error'] = 'Error al cancelar el pedido';
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Error al cancelar el pedido: ' . $e->getMessage();
         }
 
         header('Location: /Proyecto_aula/proyecto/views/pedidos/index.php');
@@ -188,10 +224,40 @@ switch ($action) {
         
         $id = intval($_GET['id'] ?? 0);
         
-        if ($pedidoModel->delete($id)) {
-            $_SESSION['success'] = 'Pedido eliminado correctamente';
-        } else {
-            $_SESSION['error'] = 'Error al eliminar el pedido';
+        try {
+            // Verificar si el pedido existe
+            $pedido = $pedidoModel->findById($id);
+            
+            if (!$pedido) {
+                $_SESSION['error'] = 'Pedido no encontrado';
+                header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');
+                exit;
+            }
+
+            // Eliminar pagos asociados primero
+            require_once __DIR__ . '/../models/Pago.php';
+            $pagoModel = new Pago();
+            $pago = $pagoModel->findByPedido($id);
+            if ($pago) {
+                $pagoModel->delete($pago['id_pago']);
+            }
+
+            // Eliminar facturas asociadas
+            require_once __DIR__ . '/../models/Factura.php';
+            $facturaModel = new Factura();
+            $factura = $facturaModel->findByPedido($id);
+            if ($factura) {
+                $facturaModel->delete($factura['id_factura']);
+            }
+
+            // Finalmente eliminar el pedido
+            if ($pedidoModel->delete($id)) {
+                $_SESSION['success'] = 'Pedido eliminado correctamente';
+            } else {
+                $_SESSION['error'] = 'Error al eliminar el pedido';
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Error al eliminar el pedido: ' . $e->getMessage();
         }
         
         header('Location: /Proyecto_aula/proyecto/views/admin/pedidos/index.php');

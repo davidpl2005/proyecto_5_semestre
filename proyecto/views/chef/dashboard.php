@@ -124,7 +124,6 @@ if ($filtro_estado !== 'todos') {
                 <?php else: ?>
                     <?php foreach ($pedidos as $pedido): ?>
                         <?php
-                        // CORREGIR: Calcular tiempo transcurrido con la zona horaria correcta
                         // Establecer zona horaria de Colombia
                         date_default_timezone_set('America/Bogota');
                         
@@ -150,11 +149,16 @@ if ($filtro_estado !== 'todos') {
                         $detalleModel = new DetallePedido();
                         $detalles = $detalleModel->getByPedido($pedido['id_pedido']);
                         $total_items = 0;
-                        foreach ($detalles as $detalle) {
-                            $total_items += $detalle['cantidad'];
+                        if (!empty($detalles)) {
+                            foreach ($detalles as $detalle) {
+                                $total_items += $detalle['cantidad'];
+                            }
                         }
+
+                        // Verificar si está entregado para bloquearlo
+                        $esta_bloqueado = ($pedido['estado'] === 'entregado');
                         ?>
-                        <tr>
+                        <tr <?= $esta_bloqueado ? 'style="opacity: 0.7; background-color: #f8f9fa;"' : '' ?>>
                             <td>
                                 <div>
                                     <strong style="font-size: 18px; color: #e67e22;">#<?= $pedido['id_pedido'] ?></strong>
@@ -162,6 +166,12 @@ if ($filtro_estado !== 'todos') {
                                         <br>
                                         <span class="prioridad-badge prioridad-<?= $prioridad ?>">
                                             <?= $prioridad_texto ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($esta_bloqueado): ?>
+                                        <br>
+                                        <span style="background-color: #e8f5e9; color: #27ae60; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                                            🔒 BLOQUEADO
                                         </span>
                                     <?php endif; ?>
                                     <div class="tiempo-pedido <?= $minutos > 30 ? 'tiempo-urgente' : '' ?>">
@@ -203,33 +213,38 @@ if ($filtro_estado !== 'todos') {
                                 ];
                                 $badge = $estados_badge[$pedido['estado']];
                                 ?>
-                                <span style="background-color: <?= $badge['color'] ?>20; color: <?= $badge['color'] ?>; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block;">
+                                <span style="background-color: <?= $badge['color'] ?>20; color: <?= $badge['color'] ?>; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block;">
                                     <?= $badge['icono'] ?> <?= $badge['texto'] ?>
                                 </span>
                             </td>
                             <td>
-                                <form method="post" 
-                                      action="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=updateEstado" 
-                                      style="margin: 0;">
-                                    <input type="hidden" name="id" value="<?= $pedido['id_pedido'] ?>">
-                                    <select name="estado" class="chef-estado-select" onchange="this.form.submit()">
-                                        <option value="pendiente" <?= $pedido['estado'] == 'pendiente' ? 'selected' : '' ?>>
-                                            🔴 Pendiente
-                                        </option>
-                                        <option value="preparando" <?= $pedido['estado'] == 'preparando' ? 'selected' : '' ?>>
-                                            🔵 Preparando
-                                        </option>
-                                        <option value="listo" <?= $pedido['estado'] == 'listo' ? 'selected' : '' ?>>
-                                            🟢 Listo
-                                        </option>
-                                        <option value="entregado" <?= $pedido['estado'] == 'entregado' ? 'selected' : '' ?>>
-                                            ✅ Entregado
-                                        </option>
-                                        <option value="cancelado" <?= $pedido['estado'] == 'cancelado' ? 'selected' : '' ?>>
-                                            ❌ Cancelado
-                                        </option>
-                                    </select>
-                                </form>
+                                <?php if ($esta_bloqueado): ?>
+                                    <div style="text-align: center; padding: 10px; background-color: #e8f5e9; border-radius: 8px; color: #27ae60; font-weight: 600;">
+                                        🔒 Estado Final<br>
+                                        <small style="font-size: 11px; font-weight: normal;">No se puede modificar</small>
+                                    </div>
+                                <?php else: ?>
+                                    <form method="post" 
+                                          action="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=updateEstado" 
+                                          style="margin: 0;"
+                                          onsubmit="return confirmarCambioEstado('<?= $pedido['estado'] ?>', this.estado.value)">
+                                        <input type="hidden" name="id" value="<?= $pedido['id_pedido'] ?>">
+                                        <select name="estado" class="chef-estado-select" onchange="this.form.submit()">
+                                            <option value="pendiente" <?= $pedido['estado'] == 'pendiente' ? 'selected' : '' ?>>
+                                                🔴 Pendiente
+                                            </option>
+                                            <option value="preparando" <?= $pedido['estado'] == 'preparando' ? 'selected' : '' ?>>
+                                                🔵 Preparando
+                                            </option>
+                                            <option value="listo" <?= $pedido['estado'] == 'listo' ? 'selected' : '' ?>>
+                                                🟢 Listo
+                                            </option>
+                                            <option value="entregado" <?= $pedido['estado'] == 'entregado' ? 'selected' : '' ?>>
+                                                ✅ Entregado
+                                            </option>
+                                        </select>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=view&id=<?= $pedido['id_pedido'] ?>" 
@@ -245,6 +260,14 @@ if ($filtro_estado !== 'todos') {
     </div>
 
     <script>
+        function confirmarCambioEstado(estadoActual, nuevoEstado) {
+            // Confirmar cambio a estado "entregado"
+            if (nuevoEstado === 'entregado' && estadoActual !== 'entregado') {
+                return confirm('⚠️ ¿Marcar como ENTREGADO?\n\nATENCIÓN: Una vez entregado, el pedido quedará BLOQUEADO y no podrás cambiar su estado nuevamente.\n\n¿Continuar?');
+            }
+            return true;
+        }
+
         // Auto-ocultar alertas después de 3 segundos
         setTimeout(() => {
             const alerts = document.querySelectorAll('[style*="background-color: #d4edda"], [style*="background-color: #f8d7da"]');

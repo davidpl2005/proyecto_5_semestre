@@ -89,6 +89,13 @@ class Pedido {
      */
     public function updateEstado($id, $estado) {
         try {
+            // Verificar si el pedido ya está entregado
+            $pedido = $this->findById($id);
+            if ($pedido && $pedido['estado'] === 'entregado') {
+                error_log("Intento de modificar pedido entregado #$id");
+                return false;
+            }
+
             $sql = "UPDATE pedidos SET estado = ? WHERE id_pedido = ?";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([$estado, $id]);
@@ -99,20 +106,36 @@ class Pedido {
     }
 
     /**
-     * Eliminar un pedido
+     * Eliminar un pedido completamente (con todas sus relaciones)
      */
     public function delete($id) {
         try {
-            // Primero eliminamos los detalles del pedido
-            $sqlDetalle = "DELETE FROM detalle_pedido WHERE id_pedido = ?";
-            $stmtDetalle = $this->db->prepare($sqlDetalle);
-            $stmtDetalle->execute([$id]);
+            $this->db->beginTransaction();
 
-            // Luego eliminamos el pedido
+            // 1. Eliminar facturas asociadas
+            $sqlFacturas = "DELETE FROM facturas WHERE id_pedido = ?";
+            $stmtFacturas = $this->db->prepare($sqlFacturas);
+            $stmtFacturas->execute([$id]);
+
+            // 2. Eliminar pagos asociados
+            $sqlPagos = "DELETE FROM pagos WHERE id_pedido = ?";
+            $stmtPagos = $this->db->prepare($sqlPagos);
+            $stmtPagos->execute([$id]);
+
+            // 3. Eliminar detalles del pedido
+            $sqlDetalles = "DELETE FROM detalle_pedido WHERE id_pedido = ?";
+            $stmtDetalles = $this->db->prepare($sqlDetalles);
+            $stmtDetalles->execute([$id]);
+
+            // 4. Finalmente eliminar el pedido
             $sql = "DELETE FROM pedidos WHERE id_pedido = ?";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([$id]);
+            $stmt->execute([$id]);
+
+            $this->db->commit();
+            return true;
         } catch(PDOException $e) {
+            $this->db->rollBack();
             error_log("Error en Pedido::delete(): " . $e->getMessage());
             return false;
         }
@@ -130,13 +153,27 @@ class Pedido {
                     SUM(CASE WHEN estado = 'listo' THEN 1 ELSE 0 END) as listos,
                     SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END) as entregados,
                     SUM(total) as ventas_totales
-                    FROM pedidos";
+                    FROM pedidos
+                    WHERE estado != 'cancelado'";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch(PDOException $e) {
             error_log("Error en Pedido::getEstadisticas(): " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Verificar si un pedido está bloqueado (entregado)
+     */
+    public function estaBloqueado($id) {
+        try {
+            $pedido = $this->findById($id);
+            return $pedido && $pedido['estado'] === 'entregado';
+        } catch(PDOException $e) {
+            error_log("Error en Pedido::estaBloqueado(): " . $e->getMessage());
+            return false;
         }
     }
 }
