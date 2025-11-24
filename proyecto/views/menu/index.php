@@ -7,13 +7,41 @@ checkAuth();
 $model = new Producto();
 $productos = $model->getAll();
 
-// Contar items en el carrito
+
 $totalItems = 0;
 if (isset($_SESSION['carrito'])) {
     foreach ($_SESSION['carrito'] as $item) {
         $totalItems += $item['cantidad'];
     }
 }
+
+$slides = [
+    [
+        'image' => 'slide1.jpg',
+        'title' => 'Hamburguesas Gourmet',
+        'description' => 'Las mejores hamburguesas de la ciudad con ingredientes premium'
+    ],
+    [
+        'image' => 'slide5.webp',
+        'title' => 'Pizzas Artesanales',
+        'description' => 'Pizzas hechas al horno de leña con masa tradicional'
+    ],
+    [
+        'image' => 'slide3.jpg',
+        'title' => 'Patacones',
+        'description' => 'Patacones con todo hecho con ingredientes frescos'
+    ],
+    [
+        'image' => 'slide4.jpg',
+        'title' => 'Patas',
+        'description' => 'Patas artesanales con salsas caseras'
+    ],
+    [
+        'image' => 'slide2.jpg',
+        'title' => 'Canastas',
+        'description' => 'La mejor entrada para compartir con amigos y familia'
+    ]
+];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -161,6 +189,37 @@ if (isset($_SESSION['carrito'])) {
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
+     
+        <div class="carousel-container">
+            <div class="carousel-wrapper">
+                <div class="carousel-slides" id="carouselSlides">
+                    <?php foreach ($slides as $index => $slide): ?>
+                        <div class="carousel-slide">
+                            <img src="/Proyecto_aula/proyecto/public/assets/img/products/carousel/<?= $slide['image'] ?>"
+                                alt="<?= $slide['title'] ?>"
+                                onerror="this.src='/Proyecto_aula/proyecto/public/assets/img/products/placeholder.jpg'">
+                            <div class="carousel-overlay">
+                                <h3><?= $slide['title'] ?></h3>
+                                <p><?= $slide['description'] ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+            
+                <button class="carousel-btn carousel-btn-prev" onclick="moveSlide(-1)">‹</button>
+                <button class="carousel-btn carousel-btn-next" onclick="moveSlide(1)">›</button>
+
+             
+                <div class="carousel-indicators">
+                    <?php foreach ($slides as $index => $slide): ?>
+                        <button class="carousel-indicator <?= $index === 0 ? 'active' : '' ?>"
+                            onclick="goToSlide(<?= $index ?>)"></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
         <div class="productos-grid">
             <?php if (empty($productos)): ?>
                 <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #7f8c8d;">
@@ -220,8 +279,63 @@ if (isset($_SESSION['carrito'])) {
         <?php endif; ?>
     </div>
 
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3 style="margin-bottom: 15px;">🍽️ Restaurante Bambino</h3>
+            <p>La mejor comida de la ciudad</p>
+
+
+            <div class="copyright">
+                <p>&copy; <?= date('Y') ?> Restaurante Bambino. Todos los derechos reservados.</p>
+
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Auto-ocultar alertas después de 3 segundos
+  
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.carousel-indicator');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            if (totalSlides === 0) return; 
+            if (index >= totalSlides) currentSlide = 0;
+            else if (index < 0) currentSlide = totalSlides - 1;
+            else currentSlide = index;
+
+            const slidesContainer = document.getElementById('carouselSlides');
+            slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+       
+            if (indicators.length) {
+                indicators.forEach((indicator, i) => {
+                    indicator.classList.toggle('active', i === currentSlide);
+                });
+            }
+        }
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            showSlide(currentSlide);
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            showSlide(currentSlide);
+        }
+
+     
+        showSlide(0);
+
+        setInterval(() => {
+            if (totalSlides === 0) return;
+            currentSlide++;
+            showSlide(currentSlide);
+        }, 3000); 
+
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
@@ -231,6 +345,7 @@ if (isset($_SESSION['carrito'])) {
             });
         }, 3000);
     </script>
+
 </body>
 
 </html>
