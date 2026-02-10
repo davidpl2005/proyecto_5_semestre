@@ -14,6 +14,20 @@ if (!$factura) {
 // Limpiar las variables de sesión
 unset($_SESSION['factura_actual']);
 unset($_SESSION['detalles_factura']);
+
+// Determinar la URL de retorno según el rol del usuario
+$rol_usuario = $_SESSION['user']['rol'] ?? 'cliente';
+
+switch ($rol_usuario) {
+    case 'admin':
+        $url_volver = '/Proyecto_aula/proyecto/views/admin/facturas/index.php';
+        $texto_volver = '← Volver a Gestión de Facturas';
+        break;
+    default: // cliente o chef
+        $url_volver = '/Proyecto_aula/proyecto/views/facturas/index.php';
+        $texto_volver = '← Volver a Mis Facturas';
+        break;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -163,6 +177,10 @@ unset($_SESSION['detalles_factura']);
         .btn-container {
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn-imprimir {
@@ -173,7 +191,7 @@ unset($_SESSION['detalles_factura']);
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
-            margin-right: 10px;
+            transition: all 0.3s;
         }
 
         .btn-imprimir:hover {
@@ -189,14 +207,43 @@ unset($_SESSION['detalles_factura']);
             font-size: 16px;
             text-decoration: none;
             display: inline-block;
+            transition: all 0.3s;
         }
 
         .btn-volver:hover {
             background-color: #2c3e50;
         }
 
+        .btn-panel {
+            background-color: #27ae60;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-panel:hover {
+            background-color: #229954;
+        }
+
+        .admin-badge {
+            background-color: #e8f4fd;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            color: #2c5282;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
         @media print {
-            .btn-container {
+            .btn-container,
+            .admin-badge {
                 display: none;
             }
 
@@ -212,15 +259,28 @@ unset($_SESSION['detalles_factura']);
 </head>
 <body>
     <div class="btn-container">
+        <?php if ($rol_usuario === 'admin'): ?>
+            <div class="admin-badge" style="width: 100%; text-align: center;">
+                👑 Vista de Administrador
+            </div>
+        <?php endif; ?>
+        
         <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir Factura</button>
-        <a href="/Proyecto_aula/proyecto/views/facturas/index.php" class="btn-volver">← Volver</a>
+        
+        <a href="<?= $url_volver ?>" class="btn-volver"><?= $texto_volver ?></a>
+        
+        <?php if ($rol_usuario === 'admin'): ?>
+            <a href="/Proyecto_aula/proyecto/views/admin/dashboard.php" class="btn-panel">Panel del Administrador</a>
+        <?php else: ?>
+            <a href="/Proyecto_aula/proyecto/views/menu/index.php" class="btn-panel">← Volver al Menú</a>
+        <?php endif; ?>
     </div>
 
     <div class="factura-container">
         <!-- Header -->
         <div class="header">
             <div class="empresa">
-                <h1>🍽️ Restaurante Gourmet</h1>
+                <h1>🍽️ Restaurante Bambino</h1>
                 <p>Calle Principal #123</p>
                 <p>Tel: (123) 456-7890</p>
                 <p>Email: info@restaurante.com</p>

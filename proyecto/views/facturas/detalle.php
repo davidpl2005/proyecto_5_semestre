@@ -14,6 +14,20 @@ if (!$factura) {
 // Limpiar las variables de sesión
 unset($_SESSION['factura_actual']);
 unset($_SESSION['detalles_factura']);
+
+// Determinar la URL de retorno según el rol del usuario
+$rol_usuario = $_SESSION['user']['rol'] ?? 'cliente';
+
+switch ($rol_usuario) {
+    case 'admin':
+        $url_volver = '/Proyecto_aula/proyecto/views/admin/facturas/index.php';
+        $texto_volver = '← Volver a Facturas (Admin)';
+        break;
+    default: // cliente o chef
+        $url_volver = '/Proyecto_aula/proyecto/views/facturas/index.php';
+        $texto_volver = '← Volver a Mis Facturas';
+        break;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -27,14 +41,25 @@ unset($_SESSION['detalles_factura']);
     <div class="container">
         <header class="header">
             <h1>🧾 Detalle de Factura</h1>
-            <a href="/Proyecto_aula/proyecto/views/facturas/index.php" class="btn">← Volver a Facturas</a>
+            <a href="<?= $url_volver ?>" class="btn">
+                <?= $texto_volver ?>
+            </a>
         </header>
+
+        <?php if ($rol_usuario === 'admin'): ?>
+            <!-- Indicador visual para administrador -->
+            <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                <p style="color: #2c5282; margin: 0; font-weight: 600;">
+                    👑 <strong>Vista de Administrador:</strong> Gestión completa de facturas
+                </p>
+            </div>
+        <?php endif; ?>
 
         <div class="factura-detalle">
             <!-- Header de la factura -->
             <div class="factura-header-detalle">
                 <div class="empresa-info">
-                    <h2>🍽️ Restaurante Gourmet</h2>
+                    <h2>🍽️ Restaurante Bambino</h2>
                     <p>Calle Principal #123</p>
                     <p>Tel: (123) 456-7890</p>
                     <p>Email: info@restaurante.com</p>
@@ -111,15 +136,7 @@ unset($_SESSION['detalles_factura']);
                    target="_blank">
                     📥 Descargar/Imprimir
                 </a>
-                <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=view&id=<?= $factura['id_pedido'] ?>" 
-                   class="btn-ver">
-                    📋 Ver Pedido
-                </a>
-                <a href="/Proyecto_aula/proyecto/views/menu/index.php" 
-                   class="btn"
-                   style="background-color: #34495e; color: white;">
-                    🍽️ Volver al Menú
-                </a>
+                
             </div>
         </div>
     </div>

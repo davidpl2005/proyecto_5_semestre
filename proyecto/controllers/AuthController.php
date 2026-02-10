@@ -97,7 +97,7 @@ class AuthController
     public function logout()
     {
         session_destroy();
-        header("Location: {$this->baseUrl}/views/auth/login.php");
+        header("Location: {$this->baseUrl}/views/menu/index.php");
         exit;
     }
 }

@@ -103,14 +103,7 @@ $metodo_nombre = $metodos[$pago['metodo_pago']] ?? $pago['metodo_pago'];
 
 
         <div class="acciones-confirmacion">
-            <a href="/Proyecto_aula/proyecto/controllers/PedidoController.php?action=view&id=<?= $pago['id_pedido'] ?>"
-                class="btn-primary">
-                📋 Ver Detalle del Pedido
-            </a>
-            <a href="/Proyecto_aula/proyecto/views/pedidos/index.php"
-                class="btn-secondary">
-                📦 Mis Pedidos
-            </a>
+            
             <a href="/Proyecto_aula/proyecto/views/menu/index.php"
                 class="btn-secondary">
                 🍽️ Volver al Menú

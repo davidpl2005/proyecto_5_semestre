@@ -18,6 +18,24 @@ unset($_SESSION['detalles_pedido']);
 // Calcular subtotal (sin IVA)
 $subtotal = $pedido['total'] / 1.19;
 $iva = $pedido['total'] - $subtotal;
+
+// Determinar la URL de retorno según el rol del usuario
+$rol_usuario = $_SESSION['user']['rol'] ?? 'cliente';
+
+switch ($rol_usuario) {
+    case 'admin':
+        $url_volver = '/Proyecto_aula/proyecto/views/admin/pedidos/index.php';
+        $texto_volver = '← Volver al panel del Administrador';
+        break;
+    case 'chef':
+        $url_volver = '/Proyecto_aula/proyecto/views/chef/dashboard.php';
+        $texto_volver = '← Volver al Panel de Cocina';
+        break;
+    default: // cliente
+        $url_volver = '/Proyecto_aula/proyecto/views/pedidos/index.php';
+        $texto_volver = '← Volver a Mis Pedidos';
+        break;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -31,9 +49,8 @@ $iva = $pedido['total'] - $subtotal;
     <div class="container">
         <div class="header">
             <h1>📋 Detalle del Pedido #<?= $pedido['id_pedido'] ?></h1>
-            <a href="<?= $_SESSION['user']['rol'] === 'admin' ? '/Proyecto_aula/proyecto/views/admin/pedidos/index.php' : '/Proyecto_aula/proyecto/views/pedidos/index.php' ?>" 
-               class="btn">
-                ← Volver a Pedidos
+            <a href="<?= $url_volver ?>" class="btn">
+                <?= $texto_volver ?>
             </a>
         </div>
 
@@ -54,12 +71,36 @@ $iva = $pedido['total'] - $subtotal;
                 <div class="info-item-detalle">
                     <div class="info-label">Estado</div>
                     <div class="info-value">
-                        <span class="estado-badge estado-<?= $pedido['estado'] ?>">
-                            <?= ucfirst($pedido['estado']) ?>
+                        <?php
+                        $estados_badge = [
+                            'pendiente' => ['color' => '#f39c12', 'texto' => 'Pendiente'],
+                            'preparando' => ['color' => '#3498db', 'texto' => 'Preparando'],
+                            'listo' => ['color' => '#9b59b6', 'texto' => 'Listo'],
+                            'entregado' => ['color' => '#27ae60', 'texto' => 'Entregado'],
+                            'cancelado' => ['color' => '#e74c3c', 'texto' => 'Cancelado']
+                        ];
+                        $badge = $estados_badge[$pedido['estado']];
+                        ?>
+                        <span class="estado-badge estado-<?= $pedido['estado'] ?>" 
+                              style="background-color: <?= $badge['color'] ?>20; color: <?= $badge['color'] ?>; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: inline-block;">
+                            <?= $badge['texto'] ?>
                         </span>
                     </div>
                 </div>
             </div>
+
+            <?php if ($rol_usuario === 'chef' || $rol_usuario === 'admin'): ?>
+                <!-- Información adicional para chef/admin -->
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f39c12;">
+                    <p style="color: #856404; margin: 0; font-weight: 600;">
+                        <?php if ($rol_usuario === 'chef'): ?>
+                            👨‍🍳 <strong>Vista de Chef:</strong> Verifica los productos y el estado del pedido
+                        <?php else: ?>
+                            👑 <strong>Vista de Administrador:</strong> Gestión completa del pedido
+                        <?php endif; ?>
+                    </p>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="detalles-section">
@@ -85,12 +126,16 @@ $iva = $pedido['total'] - $subtotal;
                                     <?php endif; ?>
                                     <div>
                                         <strong><?= htmlspecialchars($detalle['nombre_producto']) ?></strong>
+                                        <?php if (!empty($detalle['descripcion'])): ?>
+                                            <br>
+                                            <small style="color: #7f8c8d;"><?= htmlspecialchars($detalle['descripcion']) ?></small>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </td>
                             <td>$<?= number_format($detalle['precio_unitario'], 2) ?></td>
-                            <td><strong>x<?= $detalle['cantidad'] ?></strong></td>
-                            <td><strong style="color: #27ae60;">$<?= number_format($detalle['subtotal'], 2) ?></strong></td>
+                            <td><strong style="font-size: 18px;">x<?= $detalle['cantidad'] ?></strong></td>
+                            <td><strong style="color: #27ae60; font-size: 16px;">$<?= number_format($detalle['subtotal'], 2) ?></strong></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -111,6 +156,7 @@ $iva = $pedido['total'] - $subtotal;
                 </div>
             </div>
         </div>
+
     </div>
 </body>
 </html>
