@@ -1,9 +1,15 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../middleware/auth.php';
+require_once __DIR__ . '/../../models/Carrito.php';
 checkAuth();
 
-$carrito = $_SESSION['carrito'] ?? [];
+$carritoModel = new Carrito();
+$id_usuario = $_SESSION['user']['id'];
+
+// Obtener carrito desde la base de datos
+$carrito = $carritoModel->obtenerPorUsuario($id_usuario);
+
 $subtotal = 0;
 
 // Calcular el subtotal (suma de todos los subtotales)

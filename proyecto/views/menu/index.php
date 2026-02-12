@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../models/Producto.php';
+require_once __DIR__ . '/../../models/Carrito.php';
 
 // NO requerir autenticación - permitir acceso público
 $model = new Producto();
@@ -12,11 +13,11 @@ $userName = $isLoggedIn ? $_SESSION['user']['nombre'] : null;
 $userRole = $isLoggedIn ? $_SESSION['user']['rol'] : null;
 
 // Calcular items del carrito (solo si está logueado)
+
 $totalItems = 0;
-if ($isLoggedIn && isset($_SESSION['carrito'])) {
-    foreach ($_SESSION['carrito'] as $item) {
-        $totalItems += $item['cantidad'];
-    }
+if ($isLoggedIn) {
+    $carritoModel = new Carrito();
+    $totalItems = $carritoModel->contarItems($_SESSION['user']['id']);
 }
 
 // Agrupar productos por categoría

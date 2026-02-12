@@ -3,17 +3,22 @@ session_start();
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../models/Pedido.php';
 require_once __DIR__ . '/../models/DetallePedido.php';
+require_once __DIR__ . '/../models/Carrito.php';
 
 checkAuth();
 
 $pedidoModel = new Pedido();
 $detalleModel = new DetallePedido();
+$carritoModel = new Carrito();
 $action = $_GET['action'] ?? '';
 
 switch ($action) {
     case 'checkout':
-        // Procesar el pedido desde el carrito
-        if (empty($_SESSION['carrito'])) {
+        // Procesar el pedido desde el carrito de BD
+        $id_usuario = $_SESSION['user']['id'];
+        $carrito = $carritoModel->obtenerPorUsuario($id_usuario);
+
+        if (empty($carrito)) {
             $_SESSION['error'] = 'El carrito está vacío';
             header('Location: /Proyecto_aula/proyecto/views/carrito/index.php');
             exit;
@@ -21,7 +26,7 @@ switch ($action) {
 
         // Calcular total
         $total = 0;
-        foreach ($_SESSION['carrito'] as $item) {
+        foreach ($carrito as $item) {
             $total += $item['subtotal'];
         }
         
@@ -29,14 +34,25 @@ switch ($action) {
         $total = $total * 1.19;
 
         // Crear el pedido
-        $id_usuario = $_SESSION['user']['id'];
         $id_pedido = $pedidoModel->create($id_usuario, $total, 'pendiente');
 
         if ($id_pedido) {
+            // Preparar items para detalle de pedido
+            $items_detalle = [];
+            foreach ($carrito as $item) {
+                $items_detalle[] = [
+                    'id_producto' => $item['id_producto'],
+                    'cantidad' => $item['cantidad'],
+                    'precio' => $item['precio'],
+                    'subtotal' => $item['subtotal']
+                ];
+            }
+
             // Crear los detalles del pedido
-            if ($detalleModel->createMultiple($id_pedido, $_SESSION['carrito'])) {
-                // Limpiar el carrito
-                $_SESSION['carrito'] = [];
+            if ($detalleModel->createMultiple($id_pedido, $items_detalle)) {
+                // Limpiar el carrito de la base de datos
+                $carritoModel->vaciar($id_usuario);
+                
                 // Redirigir al formulario de pago
                 header('Location: /Proyecto_aula/proyecto/controllers/PagoController.php?action=mostrar_forma_pago&id_pedido=' . $id_pedido);
             } else {

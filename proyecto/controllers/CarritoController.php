@@ -2,16 +2,15 @@
 session_start();
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../models/Producto.php';
+require_once __DIR__ . '/../models/Carrito.php';
 
 checkAuth(); // Verificar que el usuario esté autenticado
 
 $productoModel = new Producto();
+$carritoModel = new Carrito();
 $action = $_GET['action'] ?? '';
 
-// Inicializar el carrito si no existe
-if (!isset($_SESSION['carrito'])) {
-    $_SESSION['carrito'] = [];
-}
+$id_usuario = $_SESSION['user']['id'];
 
 switch ($action) {
     case 'add':
@@ -41,30 +40,12 @@ switch ($action) {
                 exit;
             }
 
-            // Verificar si el producto ya está en el carrito
-            $encontrado = false;
-            foreach ($_SESSION['carrito'] as &$item) {
-                if ($item['id_producto'] == $id_producto) {
-                    $item['cantidad'] += $cantidad;
-                    $item['subtotal'] = $item['cantidad'] * $item['precio'];
-                    $encontrado = true;
-                    break;
-                }
+            // Agregar a la base de datos
+            if ($carritoModel->agregar($id_usuario, $id_producto, $cantidad, $producto['precio'])) {
+                $_SESSION['success'] = 'Producto agregado al carrito';
+            } else {
+                $_SESSION['error'] = 'Error al agregar el producto';
             }
-
-            // Si no está en el carrito, agregarlo
-            if (!$encontrado) {
-                $_SESSION['carrito'][] = [
-                    'id_producto' => $producto['id_producto'],
-                    'nombre' => $producto['nombre'],
-                    'precio' => $producto['precio'],
-                    'imagen' => $producto['imagen'],
-                    'cantidad' => $cantidad,
-                    'subtotal' => $producto['precio'] * $cantidad
-                ];
-            }
-
-            $_SESSION['success'] = 'Producto agregado al carrito';
         }
         header('Location: /Proyecto_aula/proyecto/views/menu/index.php');
         exit;
@@ -81,13 +62,10 @@ switch ($action) {
                 exit;
             }
 
-            foreach ($_SESSION['carrito'] as &$item) {
-                if ($item['id_producto'] == $id_producto) {
-                    $item['cantidad'] = $cantidad;
-                    $item['subtotal'] = $item['cantidad'] * $item['precio'];
-                    $_SESSION['success'] = 'Cantidad actualizada';
-                    break;
-                }
+            if ($carritoModel->actualizarCantidad($id_usuario, $id_producto, $cantidad)) {
+                $_SESSION['success'] = 'Cantidad actualizada';
+            } else {
+                $_SESSION['error'] = 'Error al actualizar la cantidad';
             }
         }
         header('Location: /Proyecto_aula/proyecto/views/carrito/index.php');
@@ -98,13 +76,10 @@ switch ($action) {
         $id_producto = intval($_GET['id'] ?? 0);
 
         if ($id_producto > 0) {
-            foreach ($_SESSION['carrito'] as $key => $item) {
-                if ($item['id_producto'] == $id_producto) {
-                    unset($_SESSION['carrito'][$key]);
-                    $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar array
-                    $_SESSION['success'] = 'Producto eliminado del carrito';
-                    break;
-                }
+            if ($carritoModel->eliminar($id_usuario, $id_producto)) {
+                $_SESSION['success'] = 'Producto eliminado del carrito';
+            } else {
+                $_SESSION['error'] = 'Error al eliminar el producto';
             }
         }
         header('Location: /Proyecto_aula/proyecto/views/carrito/index.php');
@@ -112,8 +87,11 @@ switch ($action) {
 
     case 'clear':
         // Vaciar todo el carrito
-        $_SESSION['carrito'] = [];
-        $_SESSION['success'] = 'Carrito vaciado';
+        if ($carritoModel->vaciar($id_usuario)) {
+            $_SESSION['success'] = 'Carrito vaciado';
+        } else {
+            $_SESSION['error'] = 'Error al vaciar el carrito';
+        }
         header('Location: /Proyecto_aula/proyecto/views/carrito/index.php');
         exit;
 

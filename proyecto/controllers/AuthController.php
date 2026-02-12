@@ -1,15 +1,18 @@
 <?php
 session_start();
 require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/Carrito.php';
 
 class AuthController
 {
     private $usuarioModel;
+    private $carritoModel;
     private $baseUrl;
 
     public function __construct()
     {
         $this->usuarioModel = new Usuario();
+        $this->carritoModel = new Carrito();
         $this->baseUrl = '/Proyecto_aula/proyecto';
     }
 
@@ -36,12 +39,24 @@ class AuthController
             exit;
         }
 
+        // Guardar carrito de sesión temporal (si existe)
+        $carrito_temporal = $_SESSION['carrito'] ?? [];
+
+        // Establecer sesión del usuario
         $_SESSION['user'] = [
             'id' => $usuario['id_usuario'],
             'nombre' => $usuario['nombre'],
             'correo' => $usuario['correo'],
             'rol' => $usuario['rol']
         ];
+
+        // Sincronizar carrito temporal con la base de datos
+        if (!empty($carrito_temporal)) {
+            $this->carritoModel->sincronizarDesdeSession($usuario['id_usuario'], $carrito_temporal);
+        }
+
+        // Limpiar carrito de sesión
+        unset($_SESSION['carrito']);
 
         if ($usuario['rol'] === 'admin') {
             header("Location: {$this->baseUrl}/views/admin/dashboard.php");
@@ -96,6 +111,8 @@ class AuthController
 
     public function logout()
     {
+        // NO limpiar el carrito al cerrar sesión
+        // El carrito permanece en la base de datos
         session_destroy();
         header("Location: {$this->baseUrl}/views/menu/index.php");
         exit;
