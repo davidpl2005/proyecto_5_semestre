@@ -1,0 +1,312 @@
+/* ============================================
+   ESTILOS DEL MENÚ - Restaurante Bambino
+   ============================================ */
+
+/* ----- Navegación del Header ----- */
+.menu-header nav {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* ----- Badge Contador del Carrito ----- */
+.badge-contador {
+    background-color: #e74c3c;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* ----- Alertas ----- */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    animation: slideIn 0.3s ease;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ----- Productos ----- */
+.producto-card {
+    position: relative;
+    animation: fadeInUp 0.5s ease;
+}
+
+.producto-card.no-disponible {
+    opacity: 0.6;
+    position: relative;
+}
+
+.producto-card.no-disponible::after {
+    content: 'No Disponible';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ----- Productos sin Imagen ----- */
+.sin-imagen {
+    width: 100%;
+    height: 200px;
+    background-color: #ecf0f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #95a5a6;
+    font-size: 48px;
+}
+
+/* ----- Botones de Login Requerido ----- */
+.btn-login-required {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}
+
+.btn-login-required:hover {
+    background-color: #7f8c8d;
+}
+
+/* ----- Prompt de Login ----- */
+.login-prompt {
+    background-color: #fff3cd;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #f39c12;
+    text-align: center;
+}
+
+.login-prompt-text {
+    color: #856404;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+/* ----- Filtro de Categorías ----- */
+.categorias-filter {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.categorias-filter h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-align: center;
+}
+
+.categorias-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-categoria {
+    padding: 12px 24px;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-categoria:hover {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.btn-categoria.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.categoria-count {
+    background-color: rgba(255,255,255,0.3);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.btn-categoria.active .categoria-count {
+    background-color: rgba(255,255,255,0.4);
+}
+
+/* ----- Sección de Categoría ----- */
+.categoria-section {
+    margin-bottom: 50px;
+}
+
+.categoria-section h2 {
+    color: #2c3e50;
+    font-size: 32px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #667eea;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.productos-count {
+    color: #7f8c8d;
+    font-size: 16px;
+    font-weight: 400;
+    margin-left: auto;
+}
+
+/* ----- Categoría Vacía ----- */
+.categoria-vacia {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.categoria-vacia-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* ----- Información de Stock (Solo usuarios logueados) ----- */
+.stock-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.stock-info.stock-ok {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 3px solid #28a745;
+}
+
+.stock-info.stock-bajo {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 3px solid #ffc107;
+}
+
+.stock-info.sin-stock {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 3px solid #dc3545;
+}
+
+.stock-label {
+    font-weight: 600;
+}
+
+.stock-cantidad {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* ----- Overlay de Producto Agotado (Para todos los usuarios) ----- */
+.sin-stock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    z-index: 10;
+}
+
+.sin-stock-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
